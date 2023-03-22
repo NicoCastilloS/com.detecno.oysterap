@@ -1,0 +1,32 @@
+<customlist scriptid="customlist_estatus_subs_oyster_ap">
+  <description></description>
+  <isinactive>F</isinactive>
+  <isordered>T</isordered>
+  <name>Merchant status Oyster AP</name>
+  <customvalues>
+    <customvalue scriptid="val_360644_t2658019_995">
+      <isinactive>F</isinactive>
+      <value>Disabled</value>
+    </customvalue>
+    <customvalue scriptid="val_360645_t2658019_736">
+      <isinactive>F</isinactive>
+      <value>Waiting for onboarding link</value>
+    </customvalue>
+    <customvalue scriptid="val_360646_t2658019_816">
+      <isinactive>F</isinactive>
+      <value>Waiting for approval</value>
+    </customvalue>
+    <customvalue scriptid="val_360647_t2658019_601">
+      <isinactive>F</isinactive>
+      <value>Enabled</value>
+    </customvalue>
+    <customvalue scriptid="val_360648_t2658019_621">
+      <isinactive>F</isinactive>
+      <value>Onboarding link error</value>
+    </customvalue>
+    <customvalue scriptid="val_360649_t2658019_746">
+      <isinactive>F</isinactive>
+      <value>Rejected</value>
+    </customvalue>
+  </customvalues>
+</customlist>

@@ -1,0 +1,7 @@
+<manifest projecttype="SUITEAPP">
+  <publisherid>com.detecno</publisherid>
+  <projectid>oysterap</projectid>
+  <projectname>Oyster AP</projectname>
+  <projectversion>1.0.0</projectversion>
+  <frameworkversion>1.0</frameworkversion>
+</manifest>
