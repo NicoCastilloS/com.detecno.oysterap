@@ -47,8 +47,8 @@ function(currentRecord, http, https, record, runtime, message, url) {
                "additionalInformation":{
                   "attributes":[
                      {
-                        "Value":"",
-                        "Name":""
+                        "Value":"Onboarding_AP", //AP, Onboarding
+                        "Name":"Type" //Type
                      }
                   ]
                },

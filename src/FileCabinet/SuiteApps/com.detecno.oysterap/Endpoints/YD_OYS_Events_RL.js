@@ -59,7 +59,8 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                     case "onboarding_link":
                     if(requestBody.requestId && requestBody.url && requestBody.success)
                     {
-                    //Create Onboarding link record
+                    //Create Onboarding link record.
+                        //TODO: Create type field in record. Update UE script to consider type (payment_links, OysterAP)
                     var recOnboarding = record.create({
                         type: "customrecord_yd_oys_onboard_links",
                         isDynamic: true
