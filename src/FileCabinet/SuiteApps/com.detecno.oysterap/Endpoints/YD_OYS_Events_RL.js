@@ -56,11 +56,10 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                   log.debug('requestId',requestBody.requestId);
 
                   switch(requestBody.type) {
-                    case "onboarding_link":
+                    case "Onboarding_PaymentLinks":
                     if(requestBody.requestId && requestBody.url && requestBody.success)
                     {
-                    //Create Onboarding link record.
-                        //TODO: Create type field in record. Update UE script to consider type (payment_links, OysterAP)
+                    //Create Onboarding link record
                     var recOnboarding = record.create({
                         type: "customrecord_yd_oys_onboard_links",
                         isDynamic: true
@@ -73,6 +72,23 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                    }
 
                       break;
+
+                      case "Onboarding_AP":
+                          if(requestBody.requestId && requestBody.url && requestBody.success)
+                          {
+                              //Create Onboarding link record
+                              var recOnboarding = record.create({
+                                  type: "customrecord_yd_oys_ap_onboard_links",
+                                  isDynamic: true
+                              });
+
+                              recOnboarding.setValue('custrecord_yd_oys_ap_request_id',requestBody.requestId);
+                              recOnboarding.setValue('custrecord_yd_oys_ap_onboarding_link',requestBody.url);
+                              recOnboarding.save();
+
+                          }
+
+                          break;
 
                     case "onboarding_completed":
                         if(requestBody.payload.businessId && requestBody.payload.businessRfc && requestBody.payload.status == "ONBOARDING_COMPLETED")
@@ -364,6 +380,13 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                 recSub.setValue("custrecord_subs_business_identifier", bI);
                 recSub.setValue("custrecord_subs_onboarding_link", "");
                 recSub.setValue("custrecord_status_subs_links_pagos", "4");
+
+                //Oyster AP Fields
+                recSub.setValue("custrecord_subs_business_identifieroysap", bI);
+                recSub.setValue("custrecord_subs_onboarding_link_oys_ap", "");
+                recSub.setValue("custrecord_status_oyster_ap", "4");
+
+
                 recSub.save();
             }catch (e) {
                 log.error("Error en setBusinessIdentifier()", e);
@@ -482,6 +505,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                         id: subsId,
                     });
                 subRec.setValue("custrecord_status_subs_links_pagos",6);
+                subRec.setValue("custrecord_status_oyster_ap",6);
                 subRec.save();
 
             } catch (e) {
