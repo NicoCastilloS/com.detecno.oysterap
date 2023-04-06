@@ -48,13 +48,10 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
 
             try {
 
-                if (!requestBody.type){
-                    return "Missing type..."
-                }else{
 
                   log.debug('requestBody en string',JSON.stringify(requestBody));
-                  log.debug('requestId',requestBody.requestId);
-
+                  //log.debug('requestId',requestBody.requestId);
+                  //PL Events and Onboarding events for AP & PL.
                   switch(requestBody.type) {
                     case "Onboarding_PaymentLinks":
                     if(requestBody.requestId && requestBody.url && requestBody.success)
@@ -133,13 +130,31 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                               setRejectStatus(subsId);
                           }
                      break;
-                    
-                    default:
-                      // code block
+                      case "AP_Dispersed":
+                          if (requestBody.payload.paymentId && requestBody.payload.status == "DISPERSION_SUCCESS") {
+                              setPaymentAsDispersed(requestBody.payload.paymentId);
+                          }else if(requestBody.payload.paymentId && requestBody.payload.status == "DISPERSION_FAIL"){
+                            log.debug("This payment failed: ",requestBody.payload.paymentId);
+                          }
+                          break;
+
+
                   }
+                //Create AP Link
 
+                if(requestBody.hasOwnProperty("receiver") && requestBody.receiver.hasOwnProperty("type")){
+                    switch(requestBody.receiver.type) {
+                        case "AP_LINK":
+                            if (requestBody.receiver.sourceAppID && requestBody.payload.accountsPayableLink.metadata.accountsPayableLinkUrl) {
+                                setOysterAPLink(requestBody.receiver.sourceAppID, requestBody.payload.accountsPayableLink.metadata.accountsPayableLinkUrl);
 
+                            }
+                            break;
+                    }
                 }
+
+
+
 
            
             } catch (error) {
@@ -512,6 +527,87 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                 log.error("Error setRejectStatus()", e);
             }
 
+        }
+
+        function setOysterAPLink(uuid, url) {
+            try {
+                var recId = "";
+
+                //Search for record with matching uuid
+                var customrecord_2663_file_adminSearchObj = search.create({
+                    type: "customrecord_2663_file_admin",
+                    filters:
+                        [
+                            ["custrecord_radi_oyster_ap_batch","is",uuid]
+                        ],
+                    columns:
+                        [
+                            "internalid"
+                        ]
+                });
+                var searchResultCount = customrecord_2663_file_adminSearchObj.runPaged().count;
+                log.debug("customrecord_2663_file_adminSearchObj result count",searchResultCount);
+                customrecord_2663_file_adminSearchObj.run().each(function(result){
+                    // .run().each has a limit of 4,000 results
+                    recId = result.getValue("internalid");
+                });
+
+                //Set Url
+                record.submitFields({
+                    type: "customrecord_2663_file_admin",
+                    id: recId,
+                    values: {
+                        custrecord_radi_oyster_ap_funding_url: url
+                    },
+                    options: {
+                        enableSourcing: false,
+                        ignoreMandatoryFields : true
+                    }
+                });
+            } catch (e) {
+                log.error("Error setOysterAPLink()", e);
+            }
+        }
+
+        function setPaymentAsDispersed(uuid) {
+            try {
+                var recId = "";
+                var vendorpaymentSearchObj = search.create({
+                    type: "vendorpayment",
+                    filters:
+                        [
+                            ["type","anyof","VendPymt"],
+                            "AND",
+                            ["custbody_radi_oyster_ap_paym_id","is",uuid],
+                            "AND",
+                            ["mainline","is","T"]
+                        ],
+                    columns:
+                        [
+                            "internalid"
+                        ]
+                });
+                var searchResultCount = vendorpaymentSearchObj.runPaged().count;
+                log.debug("vendorpaymentSearchObj result count",searchResultCount);
+                vendorpaymentSearchObj.run().each(function(result){
+                    recId = result.getValue("internalid");
+                });
+
+                record.submitFields({
+                    type: record.Type.VENDOR_PAYMENT,
+                    id: recId,
+                    values: {
+                        custbody_radi_oyster_ap_paym_estatus: 1
+                    },
+                    options: {
+                        enableSourcing: false,
+                        ignoreMandatoryFields : true
+                    }
+                });
+
+            } catch (e) {
+                log.error("Error setPaymentAsDispersed()", e);
+            }
         }
 
 

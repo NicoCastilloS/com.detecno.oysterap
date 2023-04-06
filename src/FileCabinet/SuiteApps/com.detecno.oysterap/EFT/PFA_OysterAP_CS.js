@@ -52,10 +52,44 @@ define(['N/currentRecord', 'N/http', 'N/https', 'N/record', 'N/runtime','N/ui/me
                 });
 
                 log.debug("uri",uri);
-                var response = https.get({
-                    url: uri
-                });
 
+
+                https.get.promise({
+                    url: uri
+                    //headers: headerObj
+                }).then(function(response){
+                    log.debug("response",response);
+                    var responseBody = JSON.parse(response.body);
+                    log.debug("responseBody",responseBody);
+                    if(responseBody.success){
+                        //todo Go to same record with param success
+                        var output = url.resolveRecord({
+                            recordType: "customrecord_2663_file_admin",
+                            recordId: pfaRecId,
+                            params: {
+                                'sent': true
+                            }
+                        });
+
+                        window.location.href = output;//showSuccess(data);
+                    }else{
+                        //TODO go to same record with error param
+                    }
+
+                    })
+                    .catch(function onRejected(reason) {
+                        log.debug({
+                            title: 'Invalid Get Request: ',
+                            details: reason
+                        });
+                    })
+
+
+
+
+               /* var response = https.get({
+                    url: uri
+                });*/
 
 
             } catch (e) {

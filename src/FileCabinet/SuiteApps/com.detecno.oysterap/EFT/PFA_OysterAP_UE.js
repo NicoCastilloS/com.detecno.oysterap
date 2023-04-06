@@ -2,13 +2,13 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/record', 'N/search'],
+define(['N/record', 'N/search', 'N/ui/message'],
     /**
  * @param{record} record
  * @param{search} search
- * @param{crypto} crypto
+ * @param{message} message
  */
-    (record, search) => {
+    (record, search, message) => {
         /**
          * Defines the function definition that is executed before record is loaded.
          * @param {Object} scriptContext
@@ -24,12 +24,15 @@ define(['N/record', 'N/search'],
                 if(scriptContext.type == "view") {
                     var pfaRec = scriptContext.newRecord;
                     var pfaRecId = pfaRec.id;
+                    var params = scriptContext.request.parameters;
+                    const form = scriptContext.form;
                     var txtFileId = pfaRec.getValue("custrecord_2663_file_ref");
                     var processedStatus = pfaRec.getValue("custrecord_2663_file_processed");
                     var paymentType = pfaRec.getValue("custrecord_2663_payment_type");
                     var bankCurrency = pfaRec.getValue("custpage_2663_bank_currency");
+                    var sentCbx = pfaRec.getValue("custrecord_radi_oyster_ap_sent");
                     log.debug("Vals:",txtFileId + "," + processedStatus+ "," + paymentType + "," + bankCurrency);
-                    if(txtFileId && processedStatus == 4 && paymentType == 1 && bankCurrency == "MXN"){
+                    if(txtFileId && processedStatus == 4 && paymentType == 1 && bankCurrency == "MXN" && !sentCbx && !params.sent){
                         scriptContext.form.clientScriptModulePath = './PFA_OysterAP_CS';
                         //Pasarle al client el id del archivo
                         scriptContext.form.addButton({
@@ -40,6 +43,32 @@ define(['N/record', 'N/search'],
 
                         });
                     }
+
+                    //Set sent checkbox
+                    if (params.sent) {
+                        //set form
+                        form.updateDefaultValues({
+                            custrecord_radi_oyster_ap_sent: true
+                        });
+                        //set record
+                        record.submitFields({
+                            type: "customrecord_2663_file_admin",
+                            id: pfaRecId,
+                            values: {
+                                custrecord_radi_oyster_ap_sent: true
+                            },
+                            options: {
+                                enableSourcing: false,
+                                ignoreMandatoryFields : true
+                            }
+                        });
+                        if(!pfaRec.getValue("custrecord_radi_oyster_ap_funding_url")){
+                            showUserMessage("success", form);
+                        }
+
+
+                    }
+
 
 
                 }
@@ -60,14 +89,14 @@ define(['N/record', 'N/search'],
          */
         const beforeSubmit = (scriptContext) => {
             try {
-                log.debug("En beforeSubmit...","");
+                //log.debug("En beforeSubmit...","");
                 var newRec = scriptContext.newRecord;
 
                 var batchId = newRec.getValue("custrecord_radi_oyster_ap_batch");
                 var lastPrInit = newRec.getValue("custrecord_2663_last_process");
                 var fileProcessed = newRec.getValue("custrecord_2663_file_processed");
                 var fileId = newRec.getValue("custrecord_2663_file_ref");
-                log.debug("batchId, fileId",batchId + "," + fileId);
+                //log.debug("batchId, fileId",batchId + "," + fileId);
 
                 if(!batchId && fileId){
                     log.debug("Generating UUID","");
@@ -101,6 +130,31 @@ define(['N/record', 'N/search'],
          */
         const afterSubmit = (scriptContext) => {
 
+        }
+
+        function showUserMessage(messageType, form) {
+
+            var msgType;
+            var msgTitle;
+            var msgText;
+
+            log.debug("messageType "+messageType);
+
+            if(messageType === "success") {
+                msgType = message.Type.CONFIRMATION;
+                msgTitle = "Exitoso";
+                msgText = "Se ha envíado la información a Oyster AP.";
+            }else {
+                msgType = message.Type.ERROR;
+                msgTitle = "Error";
+                msgText = "Ocurrió un error en la respuesta de Oyster AP";
+            }
+
+            form.addPageInitMessage({
+                title: msgTitle,
+                message: msgText,
+                type: msgType
+            });
         }
 
         return {beforeLoad, beforeSubmit, afterSubmit}

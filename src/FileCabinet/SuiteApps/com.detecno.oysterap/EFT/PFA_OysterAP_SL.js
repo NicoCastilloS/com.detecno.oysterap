@@ -2,14 +2,15 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/https','N/record', 'N/file', 'N/search'],
+define(['N/https','N/record', 'N/file', 'N/search','N/runtime',],
     /**
      * @param{https} https
      * @param{record} record
      * @param{file} file
      * @param{search} search
+     * @param{runtime} runtime
      */
-    (https, record, file, search) => {
+    (https, record, file, search, runtime) => {
         /**
          * Defines the Suitelet script trigger point.
          * @param {Object} scriptContext
@@ -49,13 +50,58 @@ define(['N/https','N/record', 'N/file', 'N/search'],
 
 
 
-                payload = {
-                    externalRefId:"", // Id Unico del batch
-                    batch:[] //Array de objetos de pagos
+                body = {
+                    payload:{
+                        sourceAppID:"", // Id Unico del batch
+                        paymentList:[], //Array de objetos de pagos
+                        receiver: {
+                            accountId: runtime.accountId
+                        }
+
+                    }
                 }
 
                 fillPayloadObj(pfaRecId);
-                log.debug("payload",payload);
+                var bizId = getBusinessIdentifier(pfaRecId);
+                log.debug("bizId",bizId);
+                if(body.payload.paymentList.length > 0 && bizId){
+                    log.debug("Request body to send",body);
+
+                    var headerObj = {
+                        "Content-Type": "application/json",
+                        "Accept": "*/*",
+                        "Authorization": https.createSecureString({input:'{custsecret_radi_oys_oci_token}'}),
+                        "BusinessIdentifier": bizId
+                    };
+                    log.debug("Header formed, sending req", "");
+
+                    var response = https.post({
+                        url: https.createSecureString({input:'{custsecret_radi_oys_oci_oys_ap_link}'}),
+                        body: JSON.stringify(body),
+                        headers: headerObj
+                    });
+                    log.debug("response",response);
+                    log.debug("response body",JSON.parse(response.body));
+                    var responseBody = JSON.parse(response.body);
+
+                    //Todo if response success then set success to true else to false
+                    //Set success to true
+                    if(responseBody.Success && responseBody.Code == 200 ){
+                        //Todo Almacenar IdRequest
+                        slResponse.success = true;
+                    }else{
+                        slResponse.message = responseBody.Messages;
+                    }
+
+                    //Todo Set payment link field value in PFA record
+                }
+
+
+
+
+
+
+
 
             } catch (e) {
                 log.error("Error handleGet", e);
@@ -63,9 +109,8 @@ define(['N/https','N/record', 'N/file', 'N/search'],
 
 
             //log.debug("Done!","")
-
-            //sc.response.write(resObj);
-
+            log.debug("Responding to CS",slResponse);
+            scriptContext.response.write(JSON.stringify(slResponse));
         }
 
         function fillPayloadObj(pfaRecId) {
@@ -76,7 +121,7 @@ define(['N/https','N/record', 'N/file', 'N/search'],
                         id: pfaRecId,
                     });
 
-                payload.externalRefId = pfaRec.getValue("custrecord_radi_oyster_ap_batch");
+                body.payload.sourceAppID = pfaRec.getValue("custrecord_radi_oyster_ap_batch");
                 var name = pfaRec.getValue("name");
                 log.debug("name",name);
 
@@ -88,6 +133,32 @@ define(['N/https','N/record', 'N/file', 'N/search'],
 
             } catch (e) {
                 log.error("Error fillPayloadObj()", e);
+            }
+        }
+
+        function getBusinessIdentifier(pfaRecId) {
+            try {
+                var pfaLook = search.lookupFields({
+                    type: "customrecord_2663_file_admin",
+                    id: pfaRecId,
+                    columns: ['custrecord_2663_payment_subsidiary']
+                });
+
+                var subId = pfaLook.custrecord_2663_payment_subsidiary[0].value;
+
+                log.debug("Got subId",subId);
+
+                var subsLook = search.lookupFields({
+                    type: record.Type.SUBSIDIARY,
+                    id: subId,
+                    columns: ['custrecord_subs_business_identifieroysap']
+                });
+                var businessIdentifier = subsLook.custrecord_subs_business_identifieroysap;
+
+                return businessIdentifier;
+
+            } catch (e) {
+                log.error("Error getBusinessIdentifier()", e);
             }
         }
 
@@ -122,8 +193,9 @@ define(['N/https','N/record', 'N/file', 'N/search'],
                     var paymObj = {
                         paymentId: "", //oyster id
                         businessName: "", //entity
-                        businessEmail: "", //email del vendor/entity record
-                        refNumber: "", //Ref no Sublista
+                        email: "", //email del vendor/entity record
+                        rfc:"", //RFC del vendor
+                        invoceNumber: "", //Ref no Sublista
                         dueDate: "", //Date due sublista
                         amount: "", // total
                         currency: "", //currency
@@ -141,11 +213,12 @@ define(['N/https','N/record', 'N/file', 'N/search'],
                     var vendLook = search.lookupFields({
                         type: record.Type.VENDOR,
                         id: vendId,
-                        columns: ['email']
+                        columns: ['email', 'custentity_mx_rfc']
                     });
-                    paymObj.businessEmail = vendLook.email;
+                    paymObj.email = vendLook.email;
+                    paymObj.rfc = vendLook.custentity_mx_rfc;
 
-                    paymObj.refNumber = billPaymRec.getSublistValue({
+                    paymObj.invoceNumber = billPaymRec.getSublistValue({
                         sublistId: 'apply',
                         fieldId: 'refnum',
                         line: 0
@@ -162,8 +235,9 @@ define(['N/https','N/record', 'N/file', 'N/search'],
                     var year = dueDate.getFullYear().toString();
 
                     paymObj.dueDate = `${day}-${month}-${year}`;
-
-                    paymObj.amount = billPaymRec.getValue("total");
+                    //TODO Uncomment below line to use actual amounts
+                    //paymObj.amount = billPaymRec.getValue("total") * 100;
+                    paymObj.amount = 50000;
                     paymObj.currency = billPaymRec.getText("currency");
 
                     var vendRecord = record.load({
@@ -177,7 +251,7 @@ define(['N/https','N/record', 'N/file', 'N/search'],
                         line: 0
                     });
 
-                    payload.batch.push(paymObj);
+                    body.payload.paymentList.push(paymObj);
 
                     //log.debug("paymObj",paymObj);
 
@@ -194,6 +268,8 @@ define(['N/https','N/record', 'N/file', 'N/search'],
                 log.error("Error fillPayloadbatch()", e);
             }
         }
+
+
 
 
 
