@@ -132,7 +132,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                      break;
                       case "AP_Dispersed":
                           if (requestBody.payload.paymentId && requestBody.payload.status == "DISPERSION_SUCCESS") {
-                              setPaymentAsDispersed(requestBody.payload.paymentId);
+                              setPaymentAsDispersed(requestBody.payload.paymentId, requestBody.payload.cepUrl);
                           }else if(requestBody.payload.paymentId && requestBody.payload.status == "DISPERSION_FAIL"){
                             log.debug("This payment failed: ",requestBody.payload.paymentId);
                           }
@@ -569,9 +569,10 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
             }
         }
 
-        function setPaymentAsDispersed(uuid) {
+        function setPaymentAsDispersed(uuid, cepUrl) {
             try {
                 var recId = "";
+                log.debug("Looking for bill payment with uuid ",uuid);
                 var vendorpaymentSearchObj = search.create({
                     type: "vendorpayment",
                     filters:
@@ -597,7 +598,8 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                     type: record.Type.VENDOR_PAYMENT,
                     id: recId,
                     values: {
-                        custbody_radi_oyster_ap_paym_estatus: 1
+                        custbody_radi_oyster_ap_paym_estatus: 1,
+                        custbody_radi_oyster_ap_paym_cepurl: cepUrl
                     },
                     options: {
                         enableSourcing: false,
