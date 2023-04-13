@@ -1,0 +1,12 @@
+<customlist scriptid="customlist_radi_oys_ap_paym_status">
+  <description></description>
+  <isinactive>F</isinactive>
+  <isordered>T</isordered>
+  <name>Oyster AP status</name>
+  <customvalues>
+    <customvalue scriptid="val_362529_t2658019_378">
+      <isinactive>F</isinactive>
+      <value>Dispersado</value>
+    </customvalue>
+  </customvalues>
+</customlist>

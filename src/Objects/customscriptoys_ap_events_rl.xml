@@ -1,0 +1,22 @@
+<restlet scriptid="customscriptoys_ap_events_rl">
+  <description></description>
+  <isinactive>F</isinactive>
+  <name>Oyster AP Events</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteApps/com.detecno.oysterap/Endpoints/YD_OYS_AP_Events_RL.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy1">
+      <allemployees>F</allemployees>
+      <allpartners>F</allpartners>
+      <allroles>T</allroles>
+      <audslctrole></audslctrole>
+      <isdeployed>T</isdeployed>
+      <loglevel>DEBUG</loglevel>
+      <status>RELEASED</status>
+      <title>Oyster AP Events Deployment</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</restlet>

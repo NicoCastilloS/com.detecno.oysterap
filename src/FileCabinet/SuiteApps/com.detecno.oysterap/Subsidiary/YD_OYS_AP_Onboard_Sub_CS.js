@@ -117,13 +117,27 @@ function(currentRecord, http, https, record, runtime, message, url) {
                 "Content-Type": "application/json"
             };
 
-            var response = https.post({
+            https.post.promise({
                 url: uri,
                 body: JSON.stringify(reqBody),
                 headers: headerObj
-            });
+            })
+                .then(function(response){
+                    log.debug({
+                        title: 'Response',
+                        details: response
+                    });
+                    location.reload();
+                })
+                .catch(function onRejected(reason) {
+                    log.debug({
+                        title: 'Invalid Request: ',
+                        details: reason
+                    });
+                    location.reload();
+                })
 
-            location.reload();
+
 
 
         }

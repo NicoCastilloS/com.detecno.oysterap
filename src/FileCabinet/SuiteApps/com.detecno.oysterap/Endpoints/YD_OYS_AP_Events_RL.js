@@ -53,7 +53,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                   //log.debug('requestId',requestBody.requestId);
                   //PL Events and Onboarding events for AP & PL.
                   switch(requestBody.type) {
-                    case "Onboarding_PaymentLinks":
+                    /*case "Onboarding_PaymentLinks":
                     if(requestBody.requestId && requestBody.url && requestBody.success)
                     {
                     //Create Onboarding link record
@@ -68,7 +68,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
 
                    }
 
-                      break;
+                      break;*/
 
                       case "Onboarding_AP":
                           if(requestBody.requestId && requestBody.url && requestBody.success)
@@ -98,7 +98,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
 
                         break;
 
-                   case "payment_link":
+                   /*case "payment_link":
 
                    if (requestBody.requestId && requestBody.success && requestBody.paymentLink.metadata.paymentLinkUrl && requestBody.paymentLink.paymentLinkId) {
 
@@ -109,9 +109,9 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                     
                    }
 
-                      break;
+                      break;*/
                    
-                   case "order_paid":  
+                 /*  case "order_paid":
                    if (requestBody.payload.paymentOrder.paymentLinkId && requestBody.payload.paymentOrder.status) {
 
                     var invId = updatePayLinkRecStatus(requestBody.payload.paymentOrder.paymentLinkId, requestBody.payload.paymentOrder.status);
@@ -121,7 +121,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
 
                     }
 
-                    break;
+                    break;*/
 
                     case "business_change_status":
                           if(requestBody.payload.rfc && requestBody.payload.status == "REJECTED") {
@@ -135,6 +135,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                               setPaymentAsDispersed(requestBody.payload.paymentId, requestBody.payload.cepUrl);
                           }else if(requestBody.payload.paymentId && requestBody.payload.status == "DISPERSION_FAIL"){
                             log.debug("This payment failed: ",requestBody.payload.paymentId);
+                               deleteBillPayment(requestBody.payload.paymentId);
                           }
                           break;
 
@@ -392,9 +393,9 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                     id: subsId,
                 });
 
-                recSub.setValue("custrecord_subs_business_identifier", bI);
+                /*recSub.setValue("custrecord_subs_business_identifier", bI);
                 recSub.setValue("custrecord_subs_onboarding_link", "");
-                recSub.setValue("custrecord_status_subs_links_pagos", "4");
+                recSub.setValue("custrecord_status_subs_links_pagos", "4");*/
 
                 //Oyster AP Fields
                 recSub.setValue("custrecord_subs_business_identifieroysap", bI);
@@ -519,7 +520,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                         type: record.Type.SUBSIDIARY,
                         id: subsId,
                     });
-                subRec.setValue("custrecord_status_subs_links_pagos",6);
+                //subRec.setValue("custrecord_status_subs_links_pagos",6);
                 subRec.setValue("custrecord_status_oyster_ap",6);
                 subRec.save();
 
@@ -605,6 +606,42 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                         enableSourcing: false,
                         ignoreMandatoryFields : true
                     }
+                });
+
+            } catch (e) {
+                log.error("Error setPaymentAsDispersed()", e);
+            }
+        }
+
+        function deleteBillPayment(uuid) {
+            try {
+                var recId = "";
+                log.debug("Looking for bill payment with uuid ",uuid);
+                var vendorpaymentSearchObj = search.create({
+                    type: "vendorpayment",
+                    filters:
+                        [
+                            ["type","anyof","VendPymt"],
+                            "AND",
+                            ["custbody_radi_oyster_ap_paym_id","is",uuid],
+                            "AND",
+                            ["mainline","is","T"]
+                        ],
+                    columns:
+                        [
+                            "internalid"
+                        ]
+                });
+                var searchResultCount = vendorpaymentSearchObj.runPaged().count;
+                log.debug("vendorpaymentSearchObj result count",searchResultCount);
+                vendorpaymentSearchObj.run().each(function(result){
+                    recId = result.getValue("internalid");
+                });
+                log.debug("DELETING BillPayment Rec " +  recId,"");
+                //Delete record
+                record.delete({
+                    type: record.Type.VENDOR_PAYMENT,
+                    id: recId,
                 });
 
             } catch (e) {

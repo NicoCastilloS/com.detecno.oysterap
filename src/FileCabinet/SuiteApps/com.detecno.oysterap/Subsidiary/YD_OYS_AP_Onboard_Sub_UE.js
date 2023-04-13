@@ -24,6 +24,7 @@ define(['N/currentRecord', 'N/log', 'N/record','N/search', 'N/runtime'],
                 if(scriptContext.type == "view"){
 
                     var subsRec = scriptContext.newRecord;
+                    var form = scriptContext.form;
                     
                     var statusLinksPago = subsRec.getValue('custrecord_status_oyster_ap');
                     var reqIdLinksPago = subsRec.getValue('custrecord_subs_onboarding_req_id_oys_ap');
@@ -42,9 +43,15 @@ define(['N/currentRecord', 'N/log', 'N/record','N/search', 'N/runtime'],
                         subsidiaryRec.setValue('custrecord_subs_onboarding_link_oys_ap',onboardingUrl);
                         subsidiaryRec.setValue('custrecord_status_oyster_ap',3);
                         subsidiaryRec.save();
+                        log.debug("Updating form...",onboardingUrl);
+                        form.updateDefaultValues({
+                            custrecord_subs_onboarding_link_oys_ap: onboardingUrl,
+                            custrecord_status_oyster_ap: 3
+                        });
                     }
 
-                    if (statusLinksPago != "4") {
+                    log.debug("statusLinksPago, onboardingurlap",statusLinksPago + " , " + subsRec.getValue("custrecord_subs_onboarding_link_oys_ap"));
+                    if (statusLinksPago != "4" && statusLinksPago != "3" && statusLinksPago != "2") {
                     //Retrieve Mexico RFC
                     var rfc = getRFCMX(subsRec);
                     var subsName = subsRec.getValue('name');
