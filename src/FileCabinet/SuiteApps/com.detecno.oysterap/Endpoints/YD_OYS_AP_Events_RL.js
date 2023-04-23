@@ -2,14 +2,15 @@
  * @NApiVersion 2.1
  * @NScriptType Restlet
  */
-define(['N/record', 'N/search', 'N/email', 'N/render'],
+define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
     /**
  * @param{record} record
  * @param{search} search
  * @param{email} email
  * @param{render} render
+ * @param{transaction} transaction
  */
-    (record, search, email,render) => {
+    (record, search, email,render, transaction) => {
         /**
          * Defines the function that is executed when a GET request is sent to a RESTlet.
          * @param {Object} requestParams - Parameters from HTTP request URL; parameters passed as an Object (for all supported
@@ -135,7 +136,8 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                               setPaymentAsDispersed(requestBody.payload.paymentId, requestBody.payload.cepUrl);
                           }else if(requestBody.payload.paymentId && requestBody.payload.status == "DISPERSION_FAIL"){
                             log.debug("This payment failed: ",requestBody.payload.paymentId);
-                               deleteBillPayment(requestBody.payload.paymentId);
+                               //deleteBillPayment(requestBody.payload.paymentId);
+                               voidBillPayment(requestBody.payload.paymentId);
                           }
                           break;
 
@@ -643,6 +645,51 @@ define(['N/record', 'N/search', 'N/email', 'N/render'],
                     type: record.Type.VENDOR_PAYMENT,
                     id: recId,
                 });
+
+            } catch (e) {
+                log.error("Error setPaymentAsDispersed()", e);
+            }
+        }
+
+        function voidBillPayment(uuid) {
+            try {
+                var recId = "";
+                log.debug("Looking for bill payment with uuid ",uuid);
+                var vendorpaymentSearchObj = search.create({
+                    type: "vendorpayment",
+                    filters:
+                        [
+                            ["type","anyof","VendPymt"],
+                            "AND",
+                            ["custbody_radi_oyster_ap_paym_id","is",uuid],
+                            "AND",
+                            ["mainline","is","T"]
+                        ],
+                    columns:
+                        [
+                            "internalid"
+                        ]
+                });
+                var searchResultCount = vendorpaymentSearchObj.runPaged().count;
+                log.debug("vendorpaymentSearchObj result count",searchResultCount);
+                vendorpaymentSearchObj.run().each(function(result){
+                    recId = result.getValue("internalid");
+                });
+                log.debug("recId",recId);
+
+                record.submitFields({
+                    type: transaction.Type.VENDOR_PAYMENT,
+                    id: recId,
+                    values: {
+                        'custbody_radi_oyster_ap_paym_estatus': '2'
+                    }
+                });
+
+                var voidJournal = transaction.void({
+                    type: transaction.Type.VENDOR_PAYMENT, //disable Void Transactions Using Reversing Journals in Account Pref
+                    id: recId
+                });
+                log.debug("ID of void journal entry:",voidJournal);
 
             } catch (e) {
                 log.error("Error setPaymentAsDispersed()", e);
