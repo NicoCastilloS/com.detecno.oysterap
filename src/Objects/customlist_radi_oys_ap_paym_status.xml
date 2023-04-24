@@ -8,5 +8,9 @@
       <isinactive>F</isinactive>
       <value>Dispersado</value>
     </customvalue>
+    <customvalue scriptid="val_365216_t2658019_826">
+      <isinactive>F</isinactive>
+      <value>Fallido</value>
+    </customvalue>
   </customvalues>
 </customlist>
