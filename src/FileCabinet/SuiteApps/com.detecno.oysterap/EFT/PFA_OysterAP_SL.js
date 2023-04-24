@@ -76,7 +76,7 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime',],
                     log.debug("Header formed, sending req", "");
 
                     var response = https.post({
-                        url: https.createSecureString({input:'{custsecret_radi_oys_oci_oys_ap_link}'}),
+                        url: https.createSecureString({input:'{custsecret_radi_oys_oci_ap_link}'}),
                         body: JSON.stringify(body),
                         headers: headerObj
                     });
