@@ -23,6 +23,8 @@
       <feature required="false">RECEIVABLES</feature>
       <feature required="false">ACCOUNTING</feature>
       <feature required="false">PAYABLES</feature>
+      <feature required="false">SUBSIDIARIES</feature>
+      <feature required="false">WEBSERVICES</feature>
     </features>
   </dependencies>
 </manifest>
