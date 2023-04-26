@@ -116,13 +116,14 @@ function(currentRecord, http, https, record, runtime, message, url) {
             var headerObj = {
                 "Content-Type": "application/json"
             };
-
+            console.log("URI: " + uri);
             https.post.promise({
                 url: uri,
                 body: JSON.stringify(reqBody),
                 headers: headerObj
             })
                 .then(function(response){
+                    //console.log("Response: " + response);
                     log.debug({
                         title: 'Response',
                         details: response

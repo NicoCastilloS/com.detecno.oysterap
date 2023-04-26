@@ -2,12 +2,12 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/https','N/record'],
+define(['N/https','N/record', './configuration'],
     /**
  * @param{https} https
  * @param{record} record
  */
-    (https, record) => {
+    (https, record, configuration) => {
         /**
          * Defines the Suitelet script trigger point.
          * @param {Object} scriptContext
@@ -33,7 +33,10 @@ define(['N/https','N/record'],
 
         function handlePost(sc){
             var reqBody = sc.request.body;
+            config = configuration.getConfig();
+            log.debug("config obj",config);
 
+            //TODO: REPLACE ALL custsecret ocurrences with config object. Seguir con los demás scripts y ya
             //Send POST "create payment link request" to OCI-Oyster
             if (typeof(reqBody) != "object") {
                 reqBody = JSON.parse(reqBody);
@@ -48,9 +51,9 @@ define(['N/https','N/record'],
                     break;
             }
 
-            //log.debug("Done!","")
+            log.debug("Done!","")
 
-            //sc.response.write(resObj);
+            sc.response.write("OK");
 
         }
 
@@ -59,11 +62,13 @@ define(['N/https','N/record'],
             var headerObj = {
                 "Content-Type": "application/json",
                 "Accept": "*/*",
-                "Authorization": https.createSecureString({input:'{custsecret_radi_oys_oci_token}'}),
+                //"Authorization": https.createSecureString({input:'{custsecret_radi_oys_oci_token}'}),
+                "Authorization": config.token,
                 "BusinessIdentifier": reqBody.businessIdentifier
             };
             var response = https.post({
-                url: https.createSecureString({input:'{custsecret_radi_oys_oci_pay_link_url}'}),
+                //url: https.createSecureString({input:'{custsecret_radi_oys_oci_pay_link_url}'}),
+                url: config.linkUrl,
                 body: JSON.stringify(reqBody.body),
                 headers: headerObj
             });
@@ -94,20 +99,25 @@ define(['N/https','N/record'],
 
         function createOnboardingLink (reqBody){
         log.audit("En createOnboardingLink", "");
-        log.debug("reqBody", JSON.stringify(reqBody))
+        log.debug("reqBody", JSON.stringify(reqBody));
+        log.debug("22","22");
+            log.debug("config.token",config.token);
             //send https request POST
             var headerObj = {
                 "Content-Type": "application/json",
                 "Accept": "*/*",
-                "Authorization": https.createSecureString({input:'{custsecret_radi_oys_oci_token}'})
+                //"Authorization": https.createSecureString({input:'{custsecret_radi_oys_oci_token}'})
+                "Authorization": config.token
             };
-            log.debug("Header formed...", "");
-           
+            log.debug("Header formed", "");
+            log.debug("Sending POST...", "");
+
             var response = https.post({
-                url: https.createSecureString({input:'{custsecret_radi_oys_oci_onb_url}'}),
+                url: config.onboardingUrl,
                 body: JSON.stringify(reqBody.body),
                 headers: headerObj
             });
+            log.debug("got respose", response);
 
             var responseBody = JSON.parse(response.body);
             log.debug('responseBody',responseBody);

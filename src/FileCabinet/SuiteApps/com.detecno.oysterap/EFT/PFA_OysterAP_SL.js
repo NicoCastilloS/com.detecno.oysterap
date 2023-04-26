@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/https','N/record', 'N/file', 'N/search','N/runtime',],
+define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/configuration'],
     /**
      * @param{https} https
      * @param{record} record
@@ -10,7 +10,7 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime',],
      * @param{search} search
      * @param{runtime} runtime
      */
-    (https, record, file, search, runtime) => {
+    (https, record, file, search, runtime, configuration) => {
         /**
          * Defines the Suitelet script trigger point.
          * @param {Object} scriptContext
@@ -42,6 +42,7 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime',],
                     success:false,
                     message:""
                 };
+                config = configuration.getConfig();
 
                 const pfaRecId = scriptContext.request.parameters['pfaRecId'];
                 log.debug("pfaRecId",pfaRecId);
@@ -70,13 +71,15 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime',],
                     var headerObj = {
                         "Content-Type": "application/json",
                         "Accept": "*/*",
-                        "Authorization": https.createSecureString({input:'{custsecret_radi_oys_oci_token}'}),
+                        //"Authorization": https.createSecureString({input:'{custsecret_radi_oys_oci_token}'}),
+                        "Authorization": config.token,
                         "BusinessIdentifier": bizId
                     };
                     log.debug("Header formed, sending req", "");
 
                     var response = https.post({
-                        url: https.createSecureString({input:'{custsecret_radi_oys_oci_ap_link}'}),
+                        //url: https.createSecureString({input:'{custsecret_radi_oys_oci_ap_link}'}),
+                        url: config.linkUrl,
                         body: JSON.stringify(body),
                         headers: headerObj
                     });
