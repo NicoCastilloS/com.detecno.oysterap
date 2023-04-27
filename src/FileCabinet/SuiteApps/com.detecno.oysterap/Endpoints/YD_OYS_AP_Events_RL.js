@@ -336,7 +336,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
                         [
                             ["taxregistrationnumber","is",rfc],
                             "AND",
-                            ["custrecord_subs_business_identifier","isempty",""],
+                            ["custrecord_subs_business_identifieroysap","isempty",""],
                             "AND",
                             ["isinactive","is","F"]
                         ],
