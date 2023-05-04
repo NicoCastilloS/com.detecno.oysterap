@@ -95,7 +95,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
                             var subsId = findMatchingSubs(requestBody.payload.businessRfc);
                             log.debug("subsId",subsId);
                             log.debug("requestBody.payload.businessId",requestBody.payload.businessId);
-                            setBusinessIdentifier(subsId, requestBody.payload.businessId);
+                            setBusinessId(subsId, requestBody.payload.businessId);
 
                         }
 
@@ -132,6 +132,11 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
                               var subsId = findMatchingSubsByRFC(requestBody.payload.rfc);
                               setRejectStatus(subsId);
                           }
+                        if(requestBody.payload.rfc && requestBody.payload.status == "APPROVED" && requestBody.payload.businessApiKey) {
+                            //Find subsidiary with matching RFC and no business identifier
+                            var subsId = findMatchingSubsByRFC(requestBody.payload.rfc);
+                            setApprovedStatus(subsId, requestBody.payload.businessApiKey);
+                        }
                      break;
                       case "AP_Dispersed":
                           if (requestBody.payload.paymentId && requestBody.payload.status == "DISPERSION_SUCCESS") {
@@ -389,7 +394,7 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
             }
         }
 
-        function setBusinessIdentifier(subsId, bI){
+        function setBusinessId(subsId, bI){
 
             try{
                     var recSubs = record.load({
@@ -416,14 +421,14 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
                 recSub.setValue("custrecord_status_subs_links_pagos", "4");*/
 
                 //Oyster AP Fields
-                recSubs.setValue("custrecord_subs_business_identifieroysap", bI);
-                recSubs.setValue("custrecord_subs_onboarding_link_oys_ap", "");
-                recSubs.setValue("custrecord_status_oyster_ap", "4");
+                recSubs.setValue("custrecord_subs_business_id", bI);
+                //recSubs.setValue("custrecord_subs_onboarding_link_oys_ap", "");
+                //recSubs.setValue("custrecord_status_oyster_ap", "4");
 
 
                 recSubs.save();
             }catch (e) {
-                log.error("Error en setBusinessIdentifier()", e);
+                log.error("Error en setBusinessId()", e);
             }
 
 
@@ -540,6 +545,25 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
                     });
                 //subRec.setValue("custrecord_status_subs_links_pagos",6);
                 subRec.setValue("custrecord_status_oyster_ap",6);
+                subRec.save();
+
+            } catch (e) {
+                log.error("Error setRejectStatus()", e);
+            }
+
+        }
+
+        function setApprovedStatus (subsId, apiKey){
+
+            try {
+                var subRec = record.load({
+                    type: record.Type.SUBSIDIARY,
+                    id: subsId,
+                });
+                //subRec.setValue("custrecord_status_subs_links_pagos",6);
+                subRec.setValue("custrecord_subs_onboarding_link_oys_ap", "");
+                subRec.setValue("custrecord_status_oyster_ap", "4");
+                subRec.setValue("custrecord_subs_business_identifieroysap", apiKey);
                 subRec.save();
 
             } catch (e) {
