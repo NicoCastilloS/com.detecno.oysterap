@@ -114,8 +114,8 @@ define(['N/currentRecord', 'N/log', 'N/record','N/search', 'N/runtime'],
                 });
 
                 
-
-                if (nexCountry == "MX"){
+                //TODO: Uncomment before depoloyment
+                //if (nexCountry == "MX"){
 
                     var rfc = subsRec.getSublistValue({
                         sublistId: "taxregistration",
@@ -125,7 +125,7 @@ define(['N/currentRecord', 'N/log', 'N/record','N/search', 'N/runtime'],
                     
 
                     return rfc
-                }
+                //}
                 
             }
         }

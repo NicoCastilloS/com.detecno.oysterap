@@ -93,6 +93,8 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
                         {
                             //Find subsidiary with matching RFC and no business identifier
                             var subsId = findMatchingSubs(requestBody.payload.businessRfc);
+                            log.debug("subsId",subsId);
+                            log.debug("requestBody.payload.businessId",requestBody.payload.businessId);
                             setBusinessIdentifier(subsId, requestBody.payload.businessId);
 
                         }
@@ -345,8 +347,8 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
                             "internalid"
                         ]
                 });
-                //var searchResultCount = subsidiarySearchObj.runPaged().count;
-                //log.debug("subsidiarySearchObj result count",searchResultCount);
+                var searchResultCount = subsidiarySearchObj.runPaged().count;
+                log.debug("subsidiarySearchObj result count",searchResultCount);
                 subsidiarySearchObj.run().each(function(result){
                     subsId = result.getValue("internalid")
                 });
@@ -390,22 +392,36 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
         function setBusinessIdentifier(subsId, bI){
 
             try{
-                var recSub = record.load({
+                    var recSubs = record.load({
+                        type: record.Type.SUBSIDIARY,
+                        id: subsId
+                    });
+                /*log.debug("Submitting subs bi fields...","");
+                record.submitFields({
                     type: record.Type.SUBSIDIARY,
                     id: subsId,
-                });
+                    values: {
+                        custrecord_subs_business_identifieroysap: bI,
+                        custrecord_subs_onboarding_link_oys_ap: '',
+                        custrecord_status_oyster_ap: '4'
+                    },
+                    options: {
+                        enableSourcing: false,
+                        ignoreMandatoryFields : true
+                    }
+                });*/
 
                 /*recSub.setValue("custrecord_subs_business_identifier", bI);
                 recSub.setValue("custrecord_subs_onboarding_link", "");
                 recSub.setValue("custrecord_status_subs_links_pagos", "4");*/
 
                 //Oyster AP Fields
-                recSub.setValue("custrecord_subs_business_identifieroysap", bI);
-                recSub.setValue("custrecord_subs_onboarding_link_oys_ap", "");
-                recSub.setValue("custrecord_status_oyster_ap", "4");
+                recSubs.setValue("custrecord_subs_business_identifieroysap", bI);
+                recSubs.setValue("custrecord_subs_onboarding_link_oys_ap", "");
+                recSubs.setValue("custrecord_status_oyster_ap", "4");
 
 
-                recSub.save();
+                recSubs.save();
             }catch (e) {
                 log.error("Error en setBusinessIdentifier()", e);
             }

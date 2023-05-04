@@ -32,7 +32,9 @@ define(['N/record', 'N/search', 'N/ui/message'],
                     var bankCurrency = pfaRec.getValue("custpage_2663_bank_currency");
                     var sentCbx = pfaRec.getValue("custrecord_radi_oyster_ap_sent");
                     log.debug("Vals:",txtFileId + "," + processedStatus+ "," + paymentType + "," + bankCurrency);
-                    if(txtFileId && processedStatus == 4 && paymentType == 1 && bankCurrency == "MXN" && !sentCbx && !params.sent){
+                    //TODO: Uncomment for MXN only
+                    //if(txtFileId && processedStatus == 4 && paymentType == 1 && bankCurrency == "MXN" && !sentCbx && !params.sent){
+                    if(txtFileId && processedStatus == 4 && paymentType == 1 && !sentCbx && !params.sent){
                         scriptContext.form.clientScriptModulePath = './PFA_OysterAP_CS';
                         //Pasarle al client el id del archivo
                         scriptContext.form.addButton({

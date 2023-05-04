@@ -386,7 +386,7 @@
     </permission>
     <permission>
       <permkey>LIST_SUBSIDIARY</permkey>
-      <permlevel>VIEW</permlevel>
+      <permlevel>FULL</permlevel>
     </permission>
     <permission>
       <permkey>LIST_TAXENGINESELECTION</permkey>

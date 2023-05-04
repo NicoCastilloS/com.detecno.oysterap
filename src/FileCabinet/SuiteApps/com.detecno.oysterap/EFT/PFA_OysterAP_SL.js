@@ -118,20 +118,22 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
 
         function fillPayloadObj(pfaRecId) {
             try {
-
+                log.debug("pfaRecId",pfaRecId);
                 var pfaRec = record.load({
                         type: 'customrecord_2663_file_admin',
                         id: pfaRecId,
                     });
 
                 body.payload.sourceAppID = pfaRec.getValue("custrecord_radi_oyster_ap_batch");
+                var subsBatch = pfaRec.getValue("custrecord_2663_payment_subsidiary");
+                log.debug("subsBatch",subsBatch);
                 var name = pfaRec.getValue("name");
                 log.debug("name",name);
 
                 //Hacer una busqueda de los bill payments que correspondan a este file
                 //log.debug("Sublists: ",pfaRec.getSublists());
 
-                fillPayloadbatch(name);
+                fillPayloadbatch(name, subsBatch);
 
 
             } catch (e) {
@@ -165,11 +167,12 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
             }
         }
 
-        function fillPayloadbatch(name) {
+        function fillPayloadbatch(name, subs) {
             try {
 
                 var searchVal = name + "/";
                 log.debug("searchVal",searchVal);
+                log.debug("subs",subs);
 
                 var vendorpaymentSearchObj = search.create({
                     type: "vendorpayment",
@@ -179,7 +182,9 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
                             "AND",
                             ["numbertext","contains",searchVal],
                             "AND",
-                            ["mainline","is","T"]
+                            ["mainline","is","T"],
+                            "AND",
+                            ["subsidiary","anyof",subs]
                         ],
                     columns:
                         [
@@ -241,8 +246,9 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
                     //TODO Uncomment below line to use actual amounts
                     //paymObj.amount = billPaymRec.getValue("total") * 100;
                     paymObj.amount = 50000;
-                    paymObj.currency = billPaymRec.getText("currency");
-
+                    //TODO Uncomment below line for prod
+                    //paymObj.currency = billPaymRec.getText("currency");
+                    paymObj.currency = "MXN";
                     var vendRecord = record.load({
                             type: record.Type.VENDOR,
                             id: vendId,
