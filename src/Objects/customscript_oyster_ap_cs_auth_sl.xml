@@ -6,7 +6,7 @@
   <notifyemails></notifyemails>
   <notifyowner>T</notifyowner>
   <notifyuser>F</notifyuser>
-  <scriptfile>[/SuiteApps/com.paystand.oysterap/Utilities/YD_OYS_AP_CS_Auth_SL.js]</scriptfile>
+  <scriptfile>[/SuiteApps/com.paypal.oysterap/Utilities/YD_OYS_AP_CS_Auth_SL.js]</scriptfile>
   <scriptdeployments>
     <scriptdeployment scriptid="customdeploy_oyster_ap_cs_auth_dep">
       <allemployees>F</allemployees>

@@ -1,6 +1,6 @@
 <deploy>
     <files>
-        <path>~/FileCabinet/SuiteApps/com.paystand.oysterap/*</path>
+        <path>~/FileCabinet/SuiteApps/com.paypal.oysterap/*</path>
     </files>
     <objects>
         <path>~/Objects/*</path>
