@@ -2,13 +2,13 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  */
-define(['N/currentRecord', 'N/log', 'N/record','N/search', 'N/runtime'],
+define(['N/currentRecord', 'N/log', 'N/record','N/search', 'N/runtime', 'N/config'],
     /**
  * @param{currentRecord} currentRecord
  * @param{log} log
  * @param{record} record
  */
-    (currentRecord, log, record, search, runtime) => {
+    (currentRecord, log, record, search, runtime, config) => {
         /**
          * Defines the function definition that is executed before record is loaded.
          * @param {Object} scriptContext
@@ -53,7 +53,15 @@ define(['N/currentRecord', 'N/log', 'N/record','N/search', 'N/runtime'],
                     log.debug("statusLinksPago, onboardingurlap",statusLinksPago + " , " + subsRec.getValue("custrecord_subs_onboarding_link_oys_ap"));
                     if (statusLinksPago != "4" && statusLinksPago != "3" && statusLinksPago != "2") {
                     //Retrieve Mexico RFC
-                    var rfc = getRFCMX(subsRec);
+                    var suiteTaxEnabled = checkForSuiteTax();
+                    var rfc = "";
+                    if (suiteTaxEnabled){
+                         rfc = getRFCMX(subsRec);
+                    }else {
+                        //Get rfc from federalidnumber field
+                         rfc = subsRec.getValue('federalidnumber');
+                    }
+                    log.debug("rfc",rfc);
                     var subsName = subsRec.getValue('name');
                     var subsLegalName = subsRec.getValue('legalname');
 
@@ -128,6 +136,20 @@ define(['N/currentRecord', 'N/log', 'N/record','N/search', 'N/runtime'],
                 //}
                 
             }
+        }
+
+        function checkForSuiteTax() {
+            try {
+                var suiteTax = false;
+                suiteTax = runtime.isFeatureInEffect({
+                    feature: 'SUITETAXENGINE'
+                });
+
+            } catch (e) {
+                log.error("Error checkForSuiteTax()", e);
+            }
+
+            return suiteTax;
         }
 
         function getOnboardingLink(reqId){

@@ -65,9 +65,10 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
                 fillPayloadObj(pfaRecId);
                 var bizId = getBusinessIdentifier(pfaRecId);
                 log.debug("bizId",bizId);
+                log.debug("Request body to send",body);
                 if(body.payload.paymentList.length > 0 && bizId){
                     log.debug("Request body to send",body);
-
+                    
                     var headerObj = {
                         "Content-Type": "application/json",
                         "Accept": "*/*",
@@ -133,7 +134,7 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
                 //Hacer una busqueda de los bill payments que correspondan a este file
                 //log.debug("Sublists: ",pfaRec.getSublists());
 
-                fillPayloadbatch(name, subsBatch);
+                fillPayloadbatch(name, subsBatch, pfaRecId);
 
 
             } catch (e) {
@@ -167,24 +168,29 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
             }
         }
 
-        function fillPayloadbatch(name, subs) {
+        function fillPayloadbatch(name, subs, pfaRecId) {
             try {
 
                 var searchVal = name + "/";
                 log.debug("searchVal",searchVal);
                 log.debug("subs",subs);
-
+                log.debug("pfaRecId",pfaRecId);
                 var vendorpaymentSearchObj = search.create({
                     type: "vendorpayment",
                     filters:
                         [
                             ["type","anyof","VendPymt"],
                             "AND",
-                            ["numbertext","contains",searchVal],
-                            "AND",
                             ["mainline","is","T"],
                             "AND",
-                            ["subsidiary","anyof",subs]
+                            ["custbody_9997_pfa_record","anyof",pfaRecId]
+
+                            /*["numbertext","contains",searchVal],
+                            "AND",
+
+                            ["subsidiary","anyof",subs],
+                            "AND",*/
+
                         ],
                     columns:
                         [
@@ -218,13 +224,26 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
                     paymObj.paymentId = billPaymRec.getValue("custbody_radi_oyster_ap_paym_id");
                     paymObj.businessName = billPaymRec.getText("entity");
                     var vendId = billPaymRec.getValue("entity");
-                    var vendLook = search.lookupFields({
-                        type: record.Type.VENDOR,
-                        id: vendId,
-                        columns: ['email', 'custentity_mx_rfc']
-                    });
+                    var suiteTaxEnabled = checkForSuiteTax();
+                    if (suiteTaxEnabled){
+                        var vendLook = search.lookupFields({
+                            type: record.Type.VENDOR,
+                            id: vendId,
+                            columns: ['email', 'custentity_mx_rfc']
+                        });
+                        paymObj.rfc = vendLook.custentity_mx_rfc;
+                    }else {
+                        var vendLook = search.lookupFields({
+                            type: record.Type.VENDOR,
+                            id: vendId,
+                            columns: ['email', 'taxidnum']
+                        });
+                        paymObj.rfc = vendLook.taxidnum;
+                    }
+
+
                     paymObj.email = vendLook.email;
-                    paymObj.rfc = vendLook.custentity_mx_rfc;
+
 
                     paymObj.invoceNumber = billPaymRec.getSublistValue({
                         sublistId: 'apply',
@@ -276,6 +295,20 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
             } catch (e) {
                 log.error("Error fillPayloadbatch()", e);
             }
+        }
+
+        function checkForSuiteTax() {
+            try {
+                var suiteTax = false;
+                suiteTax = runtime.isFeatureInEffect({
+                    feature: 'SUITETAXENGINE'
+                });
+
+            } catch (e) {
+                log.error("Error checkForSuiteTax()", e);
+            }
+
+            return suiteTax;
         }
 
 

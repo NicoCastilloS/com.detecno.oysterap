@@ -36,7 +36,7 @@ define(['N/https','N/record', './configuration'],
             config = configuration.getConfig();
             log.debug("config obj",config);
 
-            //TODO: REPLACE ALL custsecret ocurrences with config object. Seguir con los demás scripts y ya
+
             //Send POST "create payment link request" to OCI-Oyster
             if (typeof(reqBody) != "object") {
                 reqBody = JSON.parse(reqBody);
