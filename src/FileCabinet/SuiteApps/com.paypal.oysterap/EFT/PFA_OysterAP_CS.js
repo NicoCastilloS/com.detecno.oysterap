@@ -62,7 +62,7 @@ define(['N/currentRecord', 'N/http', 'N/https', 'N/record', 'N/runtime','N/ui/me
                     var responseBody = JSON.parse(response.body);
                     log.debug("responseBody",responseBody);
                     if(responseBody.success){
-                        //todo Go to same record with param success
+
                         var output = url.resolveRecord({
                             recordType: "customrecord_2663_file_admin",
                             recordId: pfaRecId,
@@ -73,7 +73,7 @@ define(['N/currentRecord', 'N/http', 'N/https', 'N/record', 'N/runtime','N/ui/me
 
                         window.location.href = output;//showSuccess(data);
                     }else{
-                        //TODO go to same record with error param
+
                     }
 
                     })

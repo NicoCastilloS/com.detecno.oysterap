@@ -68,7 +68,7 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
                 log.debug("Request body to send",body);
                 if(body.payload.paymentList.length > 0 && bizId){
                     log.debug("Request body to send",body);
-                    
+
                     var headerObj = {
                         "Content-Type": "application/json",
                         "Accept": "*/*",
@@ -88,16 +88,16 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
                     log.debug("response body",JSON.parse(response.body));
                     var responseBody = JSON.parse(response.body);
 
-                    //Todo if response success then set success to true else to false
+
                     //Set success to true
                     if(responseBody.Success && responseBody.Code == 200 ){
-                        //Todo Almacenar IdRequest
+
                         slResponse.success = true;
                     }else{
                         slResponse.message = responseBody.Messages;
                     }
 
-                    //Todo Set payment link field value in PFA record
+
                 }
 
 
