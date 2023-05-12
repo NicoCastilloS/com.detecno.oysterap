@@ -100,7 +100,7 @@ define(['N/https','N/record', './configuration'],
         function createOnboardingLink (reqBody){
         log.audit("En createOnboardingLink", "");
         log.debug("reqBody", JSON.stringify(reqBody));
-        log.debug("22","22");
+
             log.debug("config.token",config.token);
             //send https request POST
             var headerObj = {

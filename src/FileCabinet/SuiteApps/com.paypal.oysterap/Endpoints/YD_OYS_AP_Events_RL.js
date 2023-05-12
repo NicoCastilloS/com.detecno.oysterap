@@ -2,15 +2,16 @@
  * @NApiVersion 2.1
  * @NScriptType Restlet
  */
-define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
+define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction', 'N/runtime'],
     /**
  * @param{record} record
  * @param{search} search
  * @param{email} email
  * @param{render} render
  * @param{transaction} transaction
+ * @param{runtime} runtime
  */
-    (record, search, email,render, transaction) => {
+    (record, search, email,render, transaction, runtime) => {
         /**
          * Defines the function that is executed when a GET request is sent to a RESTlet.
          * @param {Object} requestParams - Parameters from HTTP request URL; parameters passed as an Object (for all supported
@@ -332,32 +333,70 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
             
         }
 
+        function checkForSuiteTax() {
+            try {
+                var suiteTax = false;
+                suiteTax = runtime.isFeatureInEffect({
+                    feature: 'SUITETAXENGINE'
+                });
+
+            } catch (e) {
+                log.error("Error checkForSuiteTax()", e);
+            }
+
+            return suiteTax;
+        }
+
         function findMatchingSubs(rfc){
+            log.debug("En findMatchingSubs RFC: ",rfc);
 
             try {
                 var subsId = "";
 
-                var subsidiarySearchObj = search.create({
-                    type: "subsidiary",
-                    filters:
-                        [
-                            ["taxregistrationnumber","is",rfc],
-                            "AND",
-                            ["custrecord_subs_business_identifieroysap","isempty",""],
-                            "AND",
-                            ["isinactive","is","F"]
-                        ],
-                    columns:
-                        [
-                            "internalid"
-                        ]
-                });
+                var suiteTaxEnabled = checkForSuiteTax();
+                log.debug("suiteTaxEnabled?",suiteTaxEnabled);
+                if (suiteTaxEnabled){
+                    var subsidiarySearchObj = search.create({
+                        type: "subsidiary",
+                        filters:
+                            [
+                                ["taxregistrationnumber","is",rfc],
+                                "AND",
+                                ["custrecord_subs_business_identifieroysap","isempty",""],
+                                "AND",
+                                ["isinactive","is","F"]
+                            ],
+                        columns:
+                            [
+                                "internalid"
+                            ]
+                    });
+                }else {
+                    var subsidiarySearchObj = search.create({
+                        type: "subsidiary",
+                        filters:
+                            [
+                                ["taxidnum","is",rfc],
+                                "AND",
+                                ["custrecord_subs_business_identifieroysap","isempty",""],
+                                "AND",
+                                ["isinactive","is","F"]
+                            ],
+                        columns:
+                            [
+                                "internalid"
+                            ]
+                    });
+
+                }
+
+
                 var searchResultCount = subsidiarySearchObj.runPaged().count;
                 log.debug("subsidiarySearchObj result count",searchResultCount);
                 subsidiarySearchObj.run().each(function(result){
                     subsId = result.getValue("internalid")
                 });
-
+                log.debug("returning subsId",subsId);
                 return subsId;
             } catch (e) {
                 log.error("Error en findMatchingSubs()", e);
@@ -368,26 +407,45 @@ define(['N/record', 'N/search', 'N/email', 'N/render', 'N/transaction'],
 
             try {
                 var subsId = "";
+                var suiteTaxEnabled = checkForSuiteTax();
 
-                var subsidiarySearchObj = search.create({
-                    type: "subsidiary",
-                    filters:
-                        [
-                            ["taxregistrationnumber","is",rfc],
-                            "AND",
-                            ["isinactive","is","F"]
-                        ],
-                    columns:
-                        [
-                            "internalid"
-                        ]
-                });
+                if (suiteTaxEnabled){
+                    var subsidiarySearchObj = search.create({
+                        type: "subsidiary",
+                        filters:
+                            [
+                                ["taxregistrationnumber","is",rfc],
+                                "AND",
+                                ["isinactive","is","F"]
+                            ],
+                        columns:
+                            [
+                                "internalid"
+                            ]
+                    });
+                }else{
+                    var subsidiarySearchObj = search.create({
+                        type: "subsidiary",
+                        filters:
+                            [
+                                ["taxidnum","is",rfc],
+                                "AND",
+                                ["isinactive","is","F"]
+                            ],
+                        columns:
+                            [
+                                "internalid"
+                            ]
+                    });
+                }
+
+
                 //var searchResultCount = subsidiarySearchObj.runPaged().count;
                 //log.debug("subsidiarySearchObj result count",searchResultCount);
                 subsidiarySearchObj.run().each(function(result){
                     subsId = result.getValue("internalid")
                 });
-
+                log.debug("returning subsId",subsId);
                 return subsId;
             } catch (e) {
                 log.error("Error en findMatchingSubs()", e);
