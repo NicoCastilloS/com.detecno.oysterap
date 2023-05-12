@@ -273,11 +273,13 @@ define(['N/https','N/record', 'N/file', 'N/search','N/runtime','../Utilities/con
                             id: vendId,
                         });
 
-                    paymObj.accountClabe = vendRecord.getSublistValue({
+                    /*paymObj.accountClabe = vendRecord.getSublistValue({
                         sublistId: 'recmachcustrecord_psg_mx_bank_info_entity',
                         fieldId: 'custrecord_psg_mx_acct_num',
                         line: 0
-                    });
+                    });*/
+
+                    paymObj.accountClabe = vendRecord.getValue("custentity_radi_oyster_ap_clabe");
 
                     body.payload.paymentList.push(paymObj);
 
