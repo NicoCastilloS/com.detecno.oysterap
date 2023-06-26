@@ -110,8 +110,8 @@ function(currentRecord, http, https, record, runtime, message, url) {
             reqBody.body = body;
 
             var uri = url.resolveScript({
-                scriptId: "customscript_oyster_ap_cs_auth_sl",
-                deploymentId: "customdeploy_oyster_ap_cs_auth_dep"
+                scriptId: "customscript_oyster_ap_sl",
+                deploymentId: "customdeploy_oyster_ap_dep"
             });
             var headerObj = {
                 "Content-Type": "application/json"
